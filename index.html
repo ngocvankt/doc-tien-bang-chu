@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f4f7fb;
+      margin: 0;
+      padding: 30px 16px;
+      color: #222;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 0 0 22px;
+      font-size: 27px;
+      text-align: center;
+      color: #1f2937;
+    }
+
+    .page-title svg {
+      flex-shrink: 0;
+    }
+
+    .form-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 620px;
+      margin: auto;
+      padding: 28px 30px;
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.09);
+    }
+
+    input[type="text"],
+    button {
+      width: 100%;
+      padding: 13px 15px;
+      margin-top: 11px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    input[type="text"] {
+      border: 1px solid #cfd5dd;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.14);
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    .convert-btn {
+      background-color: #0d6efd;
+      color: #ffffff;
+    }
+
+    #result {
+      min-height: 58px;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 9px;
+      background: #f0f2f5;
+      border-left: 4px solid #0d6efd;
+      color: #222;
+      font-weight: bold;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    #result.error {
+      color: #b42318;
+      background: #fff1f0;
+      border-left-color: #dc3545;
+    }
+
+    #copyBtn {
+      background-color: #198754;
+      color: #ffffff;
+    }
+
+    #donateBtn {
+      background-color: #ffc107;
+      color: #222;
+    }
+
+    .custom-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 13px;
+      font-size: 15px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom-check input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #0d6efd;
+    }
+
+    /* Thông báo nhỏ */
+    #notify {
+      position: fixed;
+      z-index: 3000;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      max-width: calc(100% - 32px);
+      padding: 12px 18px;
+      border-radius: 9px;
+      background: #198754;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+
+    #notify.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #notify.error-notify {
+      background: #dc3545;
+    }
+
+    /* Hộp QR ủng hộ */
+    .modal {
+      position: fixed;
+      z-index: 2000;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(15, 23, 42, 0.65);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      position: relative;
+      width: 100%;
+      max-width: 470px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      padding: 25px;
+      border-radius: 16px;
+      background: #ffffff;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transform: translateY(18px) scale(0.98);
+      transition: transform 0.22s ease;
+    }
+
+    .modal.show .modal-content {
+      transform: translateY(0) scale(1);
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      margin: 0;
+      padding: 0;
+      border-radius: 50%;
+      background: #edf0f4;
+      color: #333;
+      font-size: 25px;
+      line-height: 38px;
+      font-weight: normal;
+    }
+
+    .modal-title {
+      margin: 5px 35px 7px;
+      font-size: 23px;
+      color: #1f2937;
+    }
+
+    .modal-description {
+      margin: 0 0 16px;
+      color: #5f6773;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .qr-wrapper {
+      width: 100%;
+      max-width: 350px;
+      margin: 0 auto 16px;
+      padding: 9px;
+      border: 1px solid #dde2e8;
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    #qrImage {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 9px;
+    }
+
+    .bank-info {
+      margin-top: 13px;
+      padding: 13px 15px;
+      border-radius: 10px;
+      background: #f4f7fb;
+      text-align: left;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .bank-info-row {
+      display: grid;
+      grid-template-columns: 115px 1fr;
+      gap: 8px;
+      padding: 3px 0;
+    }
+
+    .bank-info-label {
+      color: #667085;
+    }
+
+    .bank-info-value {
+      color: #1f2937;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .copy-account-btn {
+      margin: 0;
+      background: #198754;
+      color: #ffffff;
+    }
+
+    .open-qr-btn {
+      margin: 0;
+      background: #0d6efd;
+      color: #ffffff;
+    }
+
+    .close-bottom-btn {
+      margin-top: 10px;
+      background: #e9ecef;
+      color: #333;
+    }
+
+    .small-note {
+      margin: 13px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 12px;
+      }
+
+      .page-title {
+        font-size: 23px;
+      }
+
+      .form-container {
+        padding: 22px 18px;
+      }
+
+      .modal-content {
+        padding: 23px 16px 18px;
+      }
+
+      .modal-title {
+        font-size: 21px;
+      }
+
+      .bank-info-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 5px 0;
+      }
+
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2 class="page-title">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="28"
+      height="28"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+    >
+      <path d="M6 2a1 1 0 0 0-1 1v2h10V3a1 1 0 0 0-1-1H6zM5 6v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6H5zm2 2h6v2H7V8zm0 4h6v2H7v-2z"/>
+    </svg>
+
+    Đọc số tiền bằng chữ
+  </h2>
+
+  <main class="form-container">
+    <input
+      id="number"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      placeholder="Nhập số tiền, VD: 66.000.000 hoặc 1200000"
+    >
+
+    <button class="convert-btn" type="button" onclick="convert()">
+      Đọc thành chữ
+    </button>
+
+    <label class="custom-check">
+      <input type="checkbox" id="addChan">
+      <span>Thêm chữ <strong>“chẵn”</strong> vào cuối</span>
+    </label>
+
+    <div id="result" aria-live="polite">
+      Kết quả đọc số tiền sẽ hiển thị tại đây.
+    </div>
+
+    <button id="copyBtn" type="button" onclick="copyResult()">
+      📋 Sao chép kết quả
+    </button>
+
+    <button id="donateBtn" type="button" onclick="donate()">
+      ☕ Ủng hộ tác giả ly cà phê
+    </button>
+  </main>
+
+  <!-- Hộp hiển thị mã QR -->
+  <div
+    id="donateModal"
+    class="modal"
+    aria-hidden="true"
+    onclick="handleModalBackdrop(event)"
+  >
+    <div
+      class="modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="donateTitle"
+    >
+      <button
+        class="close-modal"
+        type="button"
+        onclick="closeDonateModal()"
+        aria-label="Đóng"
+      >
+        ×
+      </button>
+
+      <h3 id="donateTitle" class="modal-title">
+        ☕ Ủng hộ tác giả
+      </h3>
+
+      <p class="modal-description">
+        Quét mã QR bằng ứng dụng ngân hàng để ủng hộ tác giả một ly cà phê.
+      </p>
+
+      <div class="qr-wrapper">
+        <img
+          id="qrImage"
+          alt="Mã QR chuyển khoản VietinBank của Đặng Ngọc Văn"
+        >
+      </div>
+
+      <div class="bank-info">
+        <div class="bank-info-row">
+          <span class="bank-info-label">Ngân hàng:</span>
+          <span class="bank-info-value">VietinBank</span>
+        </div>
+
+        <div class="bank-info-row">
+          <span class="bank-info-label">Số tài khoản:</span>
+          <span class="bank-info-value">102882088395</span>
+        </div>
+
+        <div class="bank-info-row">
+          <span class="bank-info-label">Chủ tài khoản:</span>
+          <span class="bank-info-value">DANG NGOC VAN</span>
+        </div>
+
+        <div class="bank-info-row">
+          <span class="bank-info-label">Chi nhánh:</span>
+          <span class="bank-info-value">
+            CN Bình Thuận – PGD số 01 Phan Thiết
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="copy-account-btn"
+          type="button"
+          onclick="copyAccountNumber()"
+        >
+          📋 Sao chép số tài khoản
+        </button>
+
+        <button
+          class="open-qr-btn"
+          type="button"
+          onclick="openQrImage()"
+        >
+          🔍 Mở riêng mã QR
+        </button>
+      </div>
+
+      <button
+        class="close-bottom-btn"
+        type="button"
+        onclick="closeDonateModal()"
+      >
+        Đóng
+      </button>
+
+      <p class="small-note">
+        Nội dung chuyển khoản được điền sẵn là
+        <strong>UNG HO TAC GIA</strong>. Người ủng hộ tự nhập số tiền.
+      </p>
+    </div>
+  </div>
+
+  <div id="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    /*
+     * THÔNG TIN TÀI KHOẢN NHẬN ỦNG HỘ
+     */
+    const BANK_INFO = Object.freeze({
+      bankId: "vietinbank",
+      accountNumber: "102882088395",
+      accountName: "DANG NGOC VAN",
+      transferContent: "UNG HO TAC GIA"
+    });
+
+    let notifyTimer = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      // Tạo mã VietQR khi trang được mở
+      document.getElementById("qrImage").src = buildQrUrl();
+
+      // Nhấn Enter để đọc số tiền
+      document
+        .getElementById("number")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            convert();
+          }
+        });
+
+      // Nhấn phím Esc để đóng hộp QR
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeDonateModal();
+        }
+      });
+    });
+
+    /*
+     * Tạo đường dẫn ảnh VietQR.
+     * Không đặt sẵn số tiền để người ủng hộ tự nhập.
+     */
+    function buildQrUrl() {
+      const baseUrl =
+        "https://img.vietqr.io/image/" +
+        BANK_INFO.bankId +
+        "-" +
+        BANK_INFO.accountNumber +
+        "-compact2.png";
+
+      const params = new URLSearchParams({
+        addInfo: BANK_INFO.transferContent,
+        accountName: BANK_INFO.accountName
+      });
+
+      return baseUrl + "?" + params.toString();
+    }
+
+    /*
+     * Đọc số tiền thành chữ
+     */
+    function convert() {
+      const input = document.getElementById("number");
+      const resultElement = document.getElementById("result");
+
+      const raw = input.value.trim();
+
+      // Xóa dấu chấm, dấu phẩy và khoảng trắng
+      let cleaned = raw.replace(/[.,\s]/g, "");
+
+      if (!cleaned || !/^\d+$/.test(cleaned)) {
+        resultElement.innerText = "Vui lòng nhập số tiền hợp lệ!";
+        resultElement.classList.add("error");
+        input.focus();
+        return;
+      }
+
+      // Bỏ các số 0 dư ở đầu
+      cleaned = cleaned.replace(/^0+(?=\d)/, "");
+
+      // Giới hạn để phù hợp với danh sách đơn vị đọc bên dưới
+      if (cleaned.length > 21) {
+        resultElement.innerText =
+          "Số tiền quá lớn. Vui lòng nhập tối đa 21 chữ số!";
+        resultElement.classList.add("error");
+        return;
+      }
+
+      let text = readNumberToText(cleaned);
+
+      text =
+        text.charAt(0).toUpperCase() +
+        text.slice(1) +
+        " đồng";
+
+      if (document.getElementById("addChan").checked) {
+        text += " chẵn";
+      }
+
+      resultElement.classList.remove("error");
+      resultElement.innerText = text;
+    }
+
+    /*
+     * Sao chép kết quả đọc tiền
+     */
+    async function copyResult() {
+      const resultElement = document.getElementById("result");
+      const text = resultElement.innerText.trim();
+
+      if (
+        !text ||
+        resultElement.classList.contains("error") ||
+        text === "Kết quả đọc số tiền sẽ hiển thị tại đây."
+      ) {
+        showNotify("Ông cần đọc số tiền trước khi sao chép!", true);
+        return;
+      }
+
+      const copied = await copyText(text);
+
+      if (copied) {
+        showNotify("✅ Đã sao chép kết quả!");
+      } else {
+        showNotify("Không thể sao chép. Vui lòng thử lại!", true);
+      }
+    }
+
+    /*
+     * Mở hộp QR
+     */
+    function donate() {
+      const modal = document.getElementById("donateModal");
+
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    /*
+     * Đóng hộp QR
+     */
+    function closeDonateModal() {
+      const modal = document.getElementById("donateModal");
+
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    /*
+     * Nhấn vào vùng tối bên ngoài để đóng
+     */
+    function handleModalBackdrop(event) {
+      if (event.target.id === "donateModal") {
+        closeDonateModal();
+      }
+    }
+
+    /*
+     * Sao chép số tài khoản
+     */
+    async function copyAccountNumber() {
+      const copied = await copyText(BANK_INFO.accountNumber);
+
+      if (copied) {
+        showNotify(
+          "✅ Đã sao chép số tài khoản " +
+          BANK_INFO.accountNumber +
+          "!"
+        );
+      } else {
+        showNotify("Không thể sao chép số tài khoản!", true);
+      }
+    }
+
+    /*
+     * Mở ảnh QR trong tab mới
+     */
+    function openQrImage() {
+      const qrWindow = window.open(buildQrUrl(), "_blank");
+
+      if (qrWindow) {
+        qrWindow.opener = null;
+      } else {
+        showNotify(
+          "Trình duyệt đang chặn cửa sổ mới. Vui lòng cho phép cửa sổ bật lên!",
+          true
+        );
+      }
+    }
+
+    /*
+     * Hàm sao chép có phương án dự phòng
+     */
+    async function copyText(text) {
+      try {
+        if (
+          navigator.clipboard &&
+          typeof navigator.clipboard.writeText === "function"
+        ) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+
+        return fallbackCopyText(text);
+      } catch (error) {
+        return fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      try {
+        const textArea = document.createElement("textarea");
+
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        const successful = document.execCommand("copy");
+
+        document.body.removeChild(textArea);
+        return successful;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    /*
+     * Hiện thông báo nhỏ cuối màn hình
+     */
+    function showNotify(message, isError = false) {
+      const notify = document.getElementById("notify");
+
+      clearTimeout(notifyTimer);
+
+      notify.innerText = message;
+      notify.classList.toggle("error-notify", isError);
+      notify.classList.add("show");
+
+      notifyTimer = setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2500);
+    }
+
+    /*
+     * Đọc chuỗi số thành chữ.
+     * Xử lý theo từng nhóm 3 chữ số để tránh sai số khi số tiền lớn.
+     */
+    function readNumberToText(numberString) {
+      const groupUnits = [
+        "",
+        " nghìn",
+        " triệu",
+        " tỷ",
+        " nghìn tỷ",
+        " triệu tỷ",
+        " tỷ tỷ"
+      ];
+
+      const digits = [
+        "không",
+        "một",
+        "hai",
+        "ba",
+        "bốn",
+        "năm",
+        "sáu",
+        "bảy",
+        "tám",
+        "chín"
+      ];
+
+      if (/^0+$/.test(numberString)) {
+        return "không";
+      }
+
+      const groups = [];
+
+      for (
+        let index = numberString.length;
+        index > 0;
+        index -= 3
+      ) {
+        const start = Math.max(0, index - 3);
+        groups.push(numberString.slice(start, index));
+      }
+
+      let highestNonZeroGroup = groups.length - 1;
+
+      while (
+        highestNonZeroGroup > 0 &&
+        parseInt(groups[highestNonZeroGroup], 10) === 0
+      ) {
+        highestNonZeroGroup--;
+      }
+
+      const resultParts = [];
+
+      for (
+        let groupIndex = highestNonZeroGroup;
+        groupIndex >= 0;
+        groupIndex--
+      ) {
+        const groupValue = parseInt(groups[groupIndex], 10);
+
+        if (groupValue === 0) {
+          continue;
+        }
+
+        /*
+         * Khi còn nhóm lớn phía trước và nhóm hiện tại dưới 100,
+         * đọc thêm “không trăm” để câu rõ nghĩa.
+         *
+         * Ví dụ: 1.001
+         * Một nghìn không trăm linh một.
+         */
+        const readFull =
+          groupIndex < highestNonZeroGroup &&
+          groupValue < 100;
+
+        const groupText = readThreeDigits(
+          groupValue,
+          readFull,
+          digits
+        );
+
+        resultParts.push(
+          groupText + groupUnits[groupIndex]
+        );
+      }
+
+      return resultParts
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    /*
+     * Đọc một nhóm từ 000 đến 999
+     */
+    function readThreeDigits(number, readFull, digits) {
+      const hundred = Math.floor(number / 100);
+      const ten = Math.floor((number % 100) / 10);
+      const unit = number % 10;
+
+      const parts = [];
+
+      if (hundred > 0 || readFull) {
+        if (hundred > 0) {
+          parts.push(digits[hundred] + " trăm");
+        } else {
+          parts.push("không trăm");
+        }
+
+        if (ten === 0 && unit > 0) {
+          parts.push("linh");
+        }
+      }
+
+      if (ten > 0) {
+        if (ten === 1) {
+          parts.push("mười");
+        } else {
+          parts.push(digits[ten] + " mươi");
+        }
+      }
+
+      if (unit > 0) {
+        if (ten > 1 && unit === 1) {
+          parts.push("mốt");
+        } else if (ten > 0 && unit === 5) {
+          parts.push("lăm");
+        } else {
+          parts.push(digits[unit]);
+        }
+      }
+
+      return parts.join(" ").trim();
+    }
+  </script>
+</body>
+</html>
