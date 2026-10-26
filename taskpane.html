@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đọc tiền bằng chữ</title>
+  <link rel="stylesheet" href="taskpane.css">
+  <script src="https://officeapis.public.onecdn.static.microsoft/1/office.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="icon">₫</div>
+    <div>
+      <h1>Đọc tiền bằng chữ</h1>
+      <p>Tiện ích cho Microsoft Word</p>
+    </div>
+  </header>
+
+  <main>
+    <button id="readSelectionBtn" class="btn btn-primary">Lấy số đang bôi đen</button>
+
+    <label for="numberInput">Số tiền</label>
+    <input id="numberInput" type="text" inputmode="numeric"
+           placeholder="VD: 2.170.000.000">
+
+    <label class="check-row">
+      <input id="addChan" type="checkbox">
+      <span>Thêm chữ <strong>“chẵn”</strong> ở cuối</span>
+    </label>
+
+    <button id="convertBtn" class="btn">Đọc thành chữ</button>
+
+    <section id="resultBox" class="result-box">
+      <div class="result-label">Kết quả</div>
+      <div id="result">Chưa có kết quả.</div>
+    </section>
+
+    <div class="action-grid">
+      <button id="insertAfterBtn" class="btn btn-success" disabled>Chèn sau số</button>
+      <button id="insertLineBtn" class="btn btn-success" disabled>Chèn dòng “Bằng chữ”</button>
+      <button id="replaceBtn" class="btn btn-warning" disabled>Thay số bằng chữ</button>
+      <button id="copyBtn" class="btn btn-secondary" disabled>Sao chép</button>
+    </div>
+
+    <p class="hint">
+      Mẹo: Bôi đen <strong>2.170.000.000</strong> trong Word → bấm
+      <strong>Lấy số đang bôi đen</strong> → chọn cách chèn.
+    </p>
+
+    <div id="status" class="status" aria-live="polite"></div>
+  </main>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>
